@@ -69,9 +69,9 @@ $sth->finish; # 結果セットを閉じる（MySQLでは次のクエリ実行�
 
 ### UPDATE
 ```perl
-$dbh->do("UPDATE users SET email = ? WHERE id = ?", undef,
-  'new-mu@example.com', 1);
-
+$dbh->do("UPDATE users SET email = ? WHERE id = ?",
+          undef,
+         'new-mu@example.com', 1);
 ```
 ### DELETE
 ```perl
