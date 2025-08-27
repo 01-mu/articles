@@ -20,7 +20,7 @@ It may not exist at the registry. Please make sure it is a valid component.
 ```
 
 これは **CLI に Combobox が登録されていない** ためです。
-GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見られます
+GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見られます。
 →[shadcn-svelte issue #1520](https://github.com/huntabyte/shadcn-svelte/issues/1520)
 
 ## なぜ動かないのか？
@@ -36,7 +36,7 @@ GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見ら�
 ## 解決方法：Comboboxを導入する手順
 
 ### 1. 初期化
-まず Shadcn UI を初期化します。※すでに導入済の場合は不要
+まず Shadcn UI を初期化します。※すでに導入済の場合は不要です
 
 ```bash
 npx shadcn@latest init
@@ -56,8 +56,8 @@ npx shadcn@latest add popover command
 これで `components/ui/` 配下に `popover.tsx` と `command.tsx` が追加されます。
 
 ### 3. 実用例（props対応）
-`components/ui/` 配下に以下のファイルを新規作成する。
-汎用的に利用するため、元記事のソースコードを少し編集(props対応)している。
+`components/ui/` 配下に以下のファイルを新規作成します。
+汎用的に利用するため、元記事のソースコードを少し編集(props対応)しています。
 
 ```ComboBox.tsx
 "use client"
