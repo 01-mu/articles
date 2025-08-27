@@ -58,11 +58,11 @@ npx shadcn@latest add popover command
 ### 3. 実用例（props対応）
 
 ```tsx
-"use client";
+"use client"
 
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import * as React from "react"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
@@ -70,24 +70,24 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/popover"
 
 type Option = {
-  value: string;
-  label: string;
-};
+  value: string
+  label: string
+}
 
 type ComboboxProps = {
-  options: Option[];
-  placeholder?: string;
-  emptyText?: string;
-  onChange?: (value: string) => void;
-};
+  options: Option[]
+  placeholder?: string
+  emptyText?: string
+  onChange?: (value: string) => void
+}
 
 export function Combobox({
   options,
@@ -95,8 +95,8 @@ export function Combobox({
   emptyText = "No results found.",
   onChange,
 }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [open, setOpen] = React.useState(false)
+  const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -119,9 +119,9 @@ export function Combobox({
                   key={o.value}
                   value={o.value}
                   onSelect={(val) => {
-                    setValue(val);
-                    setOpen(false);
-                    onChange?.(val);
+                    setValue(val)
+                    setOpen(false)
+                    onChange?.(val)
                   }}
                 >
                   {o.label}
@@ -133,7 +133,7 @@ export function Combobox({
         </Command>
       </PopoverContent>
     </Popover>
-  );
+  )
 }
 ```
 
