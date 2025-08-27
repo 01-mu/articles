@@ -8,7 +8,7 @@
 
 ---
 
-## 問題提起：`npx shadcn add combobox` が動かない
+## 直面した問題：`npx shadcn add combobox` が動かない
 公式サイトには [Combobox のドキュメント](https://ui.shadcn.com/docs/components/combobox) が存在しますが、実際に以下を実行するとエラーになります。
 
 ```bash
