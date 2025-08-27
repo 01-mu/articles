@@ -36,7 +36,7 @@ GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見ら�
 ## 解決方法：Comboboxを導入する手順
 
 ### 1. 初期化
-まず Shadcn UI を初期化します。
+まず Shadcn UI を初期化します。※すでに導入済の場合は不要
 
 ```bash
 npx shadcn@latest init
@@ -56,8 +56,10 @@ npx shadcn@latest add popover command
 これで `components/ui/` 配下に `popover.tsx` と `command.tsx` が追加されます。
 
 ### 3. 実用例（props対応）
+`components/ui/` 配下に以下のファイルを新規作成する。
+汎用的に利用するため、元記事のソースコードを少し編集(props対応)している。
 
-```tsx
+```ComboBox.tsx
 "use client"
 
 import * as React from "react"
