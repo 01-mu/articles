@@ -1,4 +1,4 @@
-## はじめに：Shadcn UIとは何か？
+## はじめに：shadcn/uiとは何か？
 [**shadcn/ui**](https://ui.shadcn.com) は、[Radix UI](https://www.radix-ui.com/) のアクセシブルなコンポーネントを [Tailwind CSS](https://tailwindcss.com/) で構成し、React/Next.js プロジェクトに導入できる UI ライブラリです。
 特徴は以下の通りです：
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 直面した問題：`npx shadcn add combobox` が動かない
+## 直面した問題：`npx shadcn@latest add combobox` が動かない
 公式サイトには [Combobox のドキュメント](https://ui.shadcn.com/docs/components/combobox) が存在しますが、実際に以下を実行するとエラーになります。
 
 ```bash
