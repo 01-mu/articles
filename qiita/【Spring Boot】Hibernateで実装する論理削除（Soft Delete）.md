@@ -3,7 +3,9 @@
 監査や復元の必要性があるからです。(もちろん参画しているプロジェクトの要件によって様々ですが...)
 
 Hibernate には `@SQLDelete` と `@Where` を組み合わせる方法があります。
-この記事では **サービス層に `softDelete()` を明示する前提** で、実用的な実装方法を紹介します。
+この記事では `softDelete()`の実用的な実装方法を紹介します。
+
+**【注意】論理削除（Soft Delete）がアンチパターンか否かの議論は本記事では扱っておりません。顧客要件で実装せざるを得ないケースを想定しています**
 
 ## 1. テーブル設計
 PostgreSQL を例に `deleted_at` を追加します。
@@ -13,7 +15,7 @@ ALTER TABLE users
   ADD COLUMN deleted_at timestamptz NULL;
 
 -- 削除されていないものだけ UNIQUE を効かせたい場合
--- ※これはPosetgreSQLの部分インデックスですが、DBによって対応は異なってきます
+-- ※これはPostgreSQLの部分インデックスですが、DBによって対応は異なってきます
 CREATE UNIQUE INDEX ux_users_email_active
   ON users(email) WHERE deleted_at IS NULL;
 ```
@@ -102,7 +104,7 @@ public class UserCommandService {
 }
 ```
 
-業務システムだと、データの復元や削除済データの調査は保守・運用担当者が直接SQLを叩く場面が少なくないので、`restore`と`hardDelete`を実装する場面はあまりないかも。
+（飽くまで私の経験則なのですが...）業務システムだと、データの復元や削除済データの調査は保守・運用担当者が直接SQLを叩く場面が少なくないので、`restore`と`hardDelete`を実装する場面はあまりないかもしれません。
 
 ```java
 userService.softDelete(1L);
@@ -121,30 +123,67 @@ select u.id, u.email, u.name, u.deleted_at
 from users u
 where u.deleted_at is null;
 ```
-`@Where` により「削除済みを除外する」挙動が保証されるため**アプリ側で毎回条件を書く必要はありません**
+`@Where` により「削除済みを除外する」挙動が保証されるため
+**アプリ側で毎回条件を書く必要はありません。**
 
 ---
 
 ## 6. 実務での注意点
 - **ユニーク制約の衝突**
   削除済みが残るため、`email` の UNIQUE が衝突する可能性あり。
-  → PostgreSQLなら部分インデックスで対応。
+  → PostgreSQL なら部分インデックスで対応。
 
-- **集計・監査**
-  削除済みも含めたい場合は、`nativeQuery` で書くのが確実。
+- **集計・監査（削除済みも含めたい場合）**
+  通常の JPQL/HQL クエリは、エンティティに付与した `@Where(clause = "deleted_at IS NULL")` が **常に有効** になります。
+  そのため、たとえば次のコードを書いても：
+
+  ```java
+  @Query("select count(u) from User u")
+  long countAll();
+  ```
+
+  実際に発行される SQL は：
+
+  ```sql
+  select count(u.id) from users u
+  where u.deleted_at is null;
+  ```
+
+  → 論理削除済みの行は自動的に除外されます。
+
+  削除済みも含めた集計をしたい場合は、**`nativeQuery` を使うのが確実**です。
+
+  ```java
+  @Query(value = "select count(*) from users", nativeQuery = true)
+  long countAllUsers();
+  ```
+
+  これなら `deleted_at IS NULL` が付かず、削除済みも含めた件数を取得できます。
+
+  ※ もう一つの方法として Hibernate の `@Filter` を使い、セッション単位で「削除済みも含める」切替を行う方法もあります。ただし入門向けには `nativeQuery` の方がシンプルです。
 
 - **インデックス設計**
-  `deleted_at IS NULL` 条件が必ず入るため、インデックスを適切に貼る。
+  `deleted_at IS NULL` 条件が必ず入るため、これを考慮したインデックスが必要です。
+  例：
+
+  ```sql
+  CREATE INDEX idx_users_deleted_at ON users(deleted_at);
+  CREATE UNIQUE INDEX ux_users_email_active
+    ON users(email) WHERE deleted_at IS NULL;
+  ```
+
+  → 前者はクエリの性能改善に、後者はユニーク制約の衝突回避に有効です。
 
 ---
 
 ## まとめ
 - 論理削除は`@SQLDelete + @Where` で実装できる
-- SELECT は自動的に削除済みを除外※クラスに対する`@Where`
+- SELECT は自動的に削除済みを除外（クラスに付けた `@Where` が効く）
 - サービス層に `softDelete()` / `restore()` / `hardDelete()` を明示すると実務でわかりやすいと思う
 - UNIQUE制約・集計・インデックス設計に注意する
 
 ---
 
-## 参考リンク（実在確認済み）
+## 参考
 - [How to implement a soft delete with Hibernate](https://thorben-janssen.com/implement-soft-delete-hibernate/)
+- [Hibernate ORM User Guide](https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html)
