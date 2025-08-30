@@ -1,8 +1,18 @@
+## (2025/08/30追記)冒頭補足
+
+- Hibernate 6.3（2023年9月リリース）で`@Where` が deprecated（非推奨） になりました
+  代わりに `@SQLRestriction` / `@SQLJoinTableRestriction` が推奨されています
+
+- Hibernate 6.4（2023年12月リリース）
+`@SoftDelete` が導入され、論理削除はさらにシンプルに書けるようになったそうです
+
 ## はじめに
 業務アプリでデータを「削除」する場合、**物理削除（Hard Delete）** でなく **論理削除（Soft Delete）** を求められる場面は多々あります。
-監査や復元の必要性があるからです。(もちろん参画しているプロジェクトの要件によって様々ですが...)
 
-Hibernate には `@SQLDelete` と `@Where` を組み合わせる方法があります。
+これは監査や復元の必要性があるからです。
+(もちろん参画しているプロジェクトの要件によって様々ですが...)
+
+Hibernate には `@SQLDelete` と `@SQLRestriction` を組み合わせる方法があります。
 この記事では `softDelete()`の実用的な実装方法を紹介します。
 
 **【注意】論理削除（Soft Delete）がアンチパターンか否かの議論は本記事では扱っておりません。顧客要件で実装せざるを得ないケースを想定しています**
@@ -22,8 +32,7 @@ CREATE UNIQUE INDEX ux_users_email_active
 
 
 ## 2. エンティティ定義
-`@SQLDelete` で DELETE を UPDATE に置き換え、
-`@Where` で削除済みを自動的に除外します。
+`@SQLDelete` で DELETE を UPDATE に置き換え、`@SQLRestriction` で削除済みを自動的に除外します。
 
 ```java
 import jakarta.persistence.*;
@@ -34,7 +43,7 @@ import java.time.OffsetDateTime;
 @Entity
 @Table(name = "users")
 @SQLDelete(sql = "UPDATE users SET deleted_at = now() WHERE id = ?")
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction(clause = "deleted_at IS NULL")
 public class User {
 
   @Id
@@ -72,6 +81,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
   void hardDeleteById(@Param("id") Long id);
 }
 ```
+
+
 
 ## 4. サービス層（softDelete）
 サービス層で `softDelete()` のように、論理削除であることを明示した命名をすることで、呼び出し側が意図を理解しやすくなります。
@@ -119,7 +130,7 @@ select u.id, u.email, u.name, u.deleted_at
 from users u
 where u.deleted_at is null;
 ```
-`@Where` により「削除済みを除外する」挙動が保証されるため
+`@SQLRestriction` により「削除済みを除外する」挙動が保証されるため
 **アプリ側で毎回条件を書く必要はありません。**
 
 
@@ -129,7 +140,7 @@ where u.deleted_at is null;
   → PostgreSQL なら部分インデックスで対応。
 
 ### 集計・監査（削除済みも含めたい場合）
-  通常の JPQL/HQL クエリは、エンティティに付与した `@Where(clause = "deleted_at IS NULL")` が **常に有効** になります。
+  通常の JPQL/HQL クエリは、エンティティに付与した `@SQLRestriction(clause = "deleted_at IS NULL")` が **常に有効** になります。
   そのため、たとえば次のコードを書いても：
 
   ```java
@@ -170,8 +181,8 @@ where u.deleted_at is null;
   → 前者はクエリの性能改善に、後者はユニーク制約の衝突回避に有効です。
 
 ## まとめ
-- 論理削除は`@SQLDelete + @Where` で実装できる
-- SELECT は自動的に削除済みを除外（クラスに付けた `@Where` が効く）
+- 論理削除は`@SQLDelete + @SQLRestriction` で実装できる
+- SELECT は自動的に削除済みを除外（クラスに付けた `@SQLRestriction` が効く）
 - サービス層に `softDelete()` / `restore()` / `hardDelete()` を明示すると実務でわかりやすいと思う
 - UNIQUE制約・集計・インデックス設計に注意する
 
