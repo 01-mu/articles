@@ -20,7 +20,6 @@ CREATE UNIQUE INDEX ux_users_email_active
   ON users(email) WHERE deleted_at IS NULL;
 ```
 
----
 
 ## 2. エンティティ定義
 `@SQLDelete` で DELETE を UPDATE に置き換え、
@@ -55,7 +54,6 @@ public class User {
 これで `userRepository.deleteById(id)` を呼んでも **物理削除ではなく UPDATE** が実行されます。
 さらに `findAll()` や `findById()` は `deleted_at IS NULL` 条件付きで動くため、削除済みデータは返りません。
 
----
 
 ## 3. リポジトリ（復元・物理削除）
 復元や物理削除を行いたい場合は、明示的にメソッドを追加します。
@@ -63,22 +61,20 @@ public class User {
 ```java
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  // 論理削除解除（復元）
+  // 論理削除データの復元
   @Modifying
   @Query("update User u set u.deletedAt = null where u.id = :id")
   void restoreById(@Param("id") Long id);
 
-  // 本当に削除（物理削除）
+  // 物理削除
   @Modifying
   @Query(value = "delete from users where id = :id", nativeQuery = true)
   void hardDeleteById(@Param("id") Long id);
 }
 ```
 
----
-
-## 4. サービス層（softDelete を明示）
-サービス層で `softDelete()` を明示することで、呼び出し側が意図を理解しやすくなります。
+## 4. サービス層（softDelete）
+サービス層で `softDelete()` のように、論理削除であることを明示した命名をすることで、呼び出し側が意図を理解しやすくなります。
 
 ```java
 @Service
@@ -92,7 +88,7 @@ public class UserCommandService {
     users.deleteById(id); // @SQLDelete により UPDATE に置き換わる
   }
 
-  // データの復元 ※必要があれば
+  // 論理削除データの復元 ※必要があれば
   public void restore(Long id) {
     users.restoreById(id);
   }
@@ -104,15 +100,15 @@ public class UserCommandService {
 }
 ```
 
-（飽くまで私の経験則なのですが...）業務システムだと、データの復元や削除済データの調査は保守・運用担当者が直接SQLを叩く場面が少なくないので、`restore`と`hardDelete`を実装する場面はあまりないかもしれません。
-
 ```java
+// 呼び出し例。id=1に対する操作
 userService.softDelete(1L);
 userService.restore(1L);
 userService.hardDelete(1L);
 ```
 
----
+（飽くまで私の経験則なのですが...）業務システムだと、データの復元や削除済データの調査は保守・運用担当者が直接SQLを叩く場面が少なくないので、`restore`と`hardDelete`を実装する場面はあまりないかもしれません。
+
 
 ## 5. SELECT の挙動
 
@@ -126,14 +122,13 @@ where u.deleted_at is null;
 `@Where` により「削除済みを除外する」挙動が保証されるため
 **アプリ側で毎回条件を書く必要はありません。**
 
----
 
 ## 6. 実務での注意点
-- **ユニーク制約の衝突**
+### ユニーク制約の衝突
   削除済みが残るため、`email` の UNIQUE が衝突する可能性あり。
   → PostgreSQL なら部分インデックスで対応。
 
-- **集計・監査（削除済みも含めたい場合）**
+### 集計・監査（削除済みも含めたい場合）
   通常の JPQL/HQL クエリは、エンティティに付与した `@Where(clause = "deleted_at IS NULL")` が **常に有効** になります。
   そのため、たとえば次のコードを書いても：
 
@@ -162,7 +157,7 @@ where u.deleted_at is null;
 
   ※ もう一つの方法として Hibernate の `@Filter` を使い、セッション単位で「削除済みも含める」切替を行う方法もあります。ただし入門向けには `nativeQuery` の方がシンプルです。
 
-- **インデックス設計**
+### インデックス設計
   `deleted_at IS NULL` 条件が必ず入るため、これを考慮したインデックスが必要です。
   例：
 
@@ -174,15 +169,12 @@ where u.deleted_at is null;
 
   → 前者はクエリの性能改善に、後者はユニーク制約の衝突回避に有効です。
 
----
-
 ## まとめ
 - 論理削除は`@SQLDelete + @Where` で実装できる
 - SELECT は自動的に削除済みを除外（クラスに付けた `@Where` が効く）
 - サービス層に `softDelete()` / `restore()` / `hardDelete()` を明示すると実務でわかりやすいと思う
 - UNIQUE制約・集計・インデックス設計に注意する
 
----
 
 ## 参考
 - [How to implement a soft delete with Hibernate](https://thorben-janssen.com/implement-soft-delete-hibernate/)
