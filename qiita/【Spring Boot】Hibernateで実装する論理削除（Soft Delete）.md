@@ -1,10 +1,12 @@
-## (2025/08/30追記)冒頭補足
+## 冒頭補足。バージョン差異について
 
 - Hibernate 6.3（2023年9月リリース）で`@Where` が deprecated（非推奨） になりました
-  代わりに `@SQLRestriction` / `@SQLJoinTableRestriction` が推奨されています
+代わりに `@SQLRestriction` / `@SQLJoinTableRestriction` が推奨されています
+**使用しているHibernateのバージョンに応じて、本記事の`@Where`を`@SQLRestriction`に読み替えて進めてください**
 
 - Hibernate 6.4（2023年12月リリース）
 `@SoftDelete` が導入され、論理削除はさらにシンプルに書けるようになったそうです
+しかし、`@SoftDelete`はboolean型前提であり、`deleted_at`のような日付型は対応していません
 
 ## はじめに
 業務アプリでデータを「削除」する場合、**物理削除（Hard Delete）** でなく **論理削除（Soft Delete）** を求められる場面は多々あります。
