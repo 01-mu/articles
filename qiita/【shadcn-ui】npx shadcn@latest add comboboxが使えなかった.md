@@ -19,12 +19,12 @@ npx shadcn@latest add combobox
 It may not exist at the registry. Please make sure it is a valid component.
 ```
 
-これは **CLI に Combobox が登録されていない** ためです。
+これは **CLI に combobox が登録されていない** ためです。
 GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見られます。
 →[shadcn-svelte issue #1520](https://github.com/huntabyte/shadcn-svelte/issues/1520)
 
 ## なぜ動かないのか？
-[公式ドキュメント](https://ui.shadcn.com/docs/components/combobox) にもある通り、Combobox は独立したコンポーネントではなく、以下を組み合わせて実装する「Composite Component（複合コンポーネント）」です。
+[公式ドキュメント](https://ui.shadcn.com/docs/components/combobox) にもある通り、combobox は独立したコンポーネントではなく、以下を組み合わせて実装する「Composite Component（複合コンポーネント）」です。
 
 - [`Popover`](https://ui.shadcn.com/docs/components/popover)
 - [`Command`](https://ui.shadcn.com/docs/components/command)
@@ -33,7 +33,7 @@ GitHub Issue などでも同様の報告(投稿はsvelteですが...)が見ら�
 
 ---
 
-## 解決方法：Comboboxを導入する手順
+## 解決方法：comboboxを導入する手順
 
 ### 1. 初期化
 まず Shadcn UI を初期化します。※すでに導入済の場合は不要です
@@ -47,7 +47,7 @@ npx shadcn@latest init
 ---
 
 ### 2. 必要なコンポーネントを追加
-Combobox 構築に必要な部品を導入します。
+combobox 構築に必要な部品を導入します。
 
 ```bash
 npx shadcn@latest add popover command
@@ -59,7 +59,7 @@ npx shadcn@latest add popover command
 `components/ui/` 配下に以下のファイルを新規作成します。
 汎用的に利用するため、元記事のソースコードを少し編集(props対応)しています。
 
-```ComboBox.tsx
+```combobox.tsx
 "use client"
 
 import * as React from "react"
@@ -155,5 +155,5 @@ export function Combobox({
 
 ## まとめ
 - `npx shadcn add combobox` は執筆時点(2025/08/27)で利用不可
-- Combobox は Popover + Command を組み合わせた複合コンポーネント
-- 解決策：`npx shadcn add popover command` 実行後→ `Combobox.tsx` ファイルを自分で準備する必要がある
+- combobox は Popover + Command を組み合わせた複合コンポーネント
+- 解決策：`npx shadcn add popover command` 実行後→ `combobox.tsx` ファイルを自分で準備する必要がある
