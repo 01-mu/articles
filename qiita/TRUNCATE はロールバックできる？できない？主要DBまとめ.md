@@ -33,7 +33,7 @@
 
 ## まとめ
 - **ロールバックできる** → PostgreSQL、SQL Server
-- **ロールバックできない**  MySQL / MariaDB、Oracle Database
+- **ロールバックできない** → MySQL / MariaDB、Oracle Database
 - **TRUNCATEが存在しない** → SQLite
 
 **「DBによって `TRUNCATE` がロールバックできるかどうかが違う」** という一点を押さえておけば十分です。
